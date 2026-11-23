@@ -1,0 +1,256 @@
+{% load static l10n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>England's Historic Castles · 7-day tour</title>
+    <meta name="description" content="{{ tour.subtitle }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/tour.css' %}">
+</head>
+<body data-tone="dark">
+
+<header class="chrome">
+    <a class="chrome__home" href="#1" title="Back to the first slide">{{ tour.brand }}</a>
+    <span class="chrome__title" id="slide-title" aria-live="polite"></span>
+    <div class="chrome__actions">
+        <span class="counter"><span id="cur">1</span> / <span id="total">1</span></span>
+        <button class="icon-btn" id="btn-overview" type="button" aria-label="All slides (O)" title="All slides (O)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-fs" type="button" aria-label="Fullscreen (F)" title="Fullscreen (F)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+    </div>
+</header>
+
+<main class="deck" id="deck" aria-roledescription="carousel" aria-label="Tour presentation">
+
+    {# ── 1. Обложка ─────────────────────────────────────── #}
+    <section class="slide slide--cover theme-navy" id="cover"
+             data-title="Cover" data-thumb="{% static tour.hero_photo %}" aria-roledescription="slide">
+        <div class="cover__text">
+            <p class="kicker" data-reveal style="--i:0">{{ tour.kicker }}</p>
+            <h1 class="display" data-reveal style="--i:1">{{ tour.title }}</h1>
+            <span class="rule" data-reveal style="--i:2"></span>
+            <p class="lead" data-reveal style="--i:3">{{ tour.subtitle }}</p>
+            <button class="btn btn--gold" type="button" data-next data-reveal style="--i:4">Start the journey →</button>
+            <p class="authors" data-reveal style="--i:5">{{ tour.authors }}<span>{{ tour.course }}</span></p>
+        </div>
+        <figure class="cover__photo media">
+            <img src="{% static tour.hero_photo %}" alt="A castle above a stone bridge and blooming rhododendrons">
+        </figure>
+    </section>
+
+    {# ── 2. Приветствие и цифры ─────────────────────────── #}
+    <section class="slide slide--welcome theme-navy" id="welcome" data-title="Welcome aboard" aria-roledescription="slide">
+        <div class="wrap">
+            <p class="kicker" data-reveal style="--i:0">Welcome aboard</p>
+            <h2 class="h1" data-reveal style="--i:1">{{ tour.welcome_title }}</h2>
+            <p class="lead" data-reveal style="--i:2">{{ tour.welcome_text }}</p>
+            <div class="stats">
+                {% for s in tour.stats %}
+                <button class="stat" type="button" data-goto="route" data-reveal style="--i:{{ forloop.counter|add:2 }}">
+                    <span class="stat__num" data-count="{{ s.value }}">{{ s.value }}</span>
+                    <span class="stat__label">{{ s.label }}</span>
+                    <span class="stat__text">{{ s.text }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {# ── 3. Маршрут: таблица + схема ────────────────────── #}
+    <section class="slide slide--route theme-cream" id="route" data-title="Day-by-day itinerary" aria-roledescription="slide">
+        <div class="route" data-region="all">
+            <div class="route__main">
+                <p class="kicker kicker--maroon" data-reveal style="--i:0">The route</p>
+                <h2 class="h1" data-reveal style="--i:1">Day-by-day itinerary</h2>
+
+                <div class="chips" role="group" aria-label="Filter by region" data-reveal style="--i:2">
+                    <button class="chip is-active" type="button" data-region="all" aria-pressed="true">All regions</button>
+                    {% for r in regions %}
+                    <button class="chip" type="button" data-region="{{ r.key }}" aria-pressed="false">{{ r.label }}</button>
+                    {% endfor %}
+                </div>
+
+                <div class="table-wrap" data-reveal style="--i:3">
+                    <table class="itinerary">
+                        <thead>
+                            <tr><th>Day</th><th>Castle</th><th>Region</th><th>Experience</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for c in castles %}
+                            <tr data-slug="{{ c.slug }}" data-group="{{ c.group }}" data-goto="day-{{ c.day }}"
+                                tabindex="0" role="link" aria-label="Day {{ c.day }}: {{ c.name }}">
+                                <td class="itinerary__day">{{ c.day }}</td>
+                                <td class="itinerary__name">{{ c.name }}</td>
+                                <td>{{ c.region }}</td>
+                                <td>{{ c.experience }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <p class="hint" data-reveal style="--i:4">Click a row or a point on the map to open that day.</p>
+            </div>
+
+            <figure class="route__map" data-reveal style="--i:3">
+                {% localize off %}
+                <svg viewBox="0 0 {{ route.width }} {{ route.height }}" role="group" aria-label="Schematic map of the route">
+                    <text class="map__sea" x="{{ route.width|add:-30 }}" y="120" text-anchor="end">North Sea</text>
+                    <text class="map__sea" x="{{ route.width|add:-30 }}" y="{{ route.height|add:-6 }}" text-anchor="end">English Channel</text>
+                    <path class="map__line" d="{{ route.path }}"/>
+                    {% for p in route.points %}
+                    <g class="map__pin" data-slug="{{ p.slug }}" data-group="{{ p.group }}" data-goto="day-{{ p.day }}"
+                       tabindex="0" role="link" aria-label="Day {{ p.day }}: {{ p.name }}">
+                        <circle class="map__halo" cx="{{ p.x }}" cy="{{ p.y }}" r="15"/>
+                        <circle class="map__dot" cx="{{ p.x }}" cy="{{ p.y }}" r="8.5"/>
+                        <text class="map__num" x="{{ p.x }}" y="{{ p.y }}" dy="3.6" text-anchor="middle">{{ p.day }}</text>
+                        <text class="map__label" x="{{ p.lx }}" y="{{ p.ly }}" text-anchor="{{ p.anchor }}">{{ p.name }}</text>
+                    </g>
+                    {% endfor %}
+                </svg>
+                {% endlocalize %}
+                <figcaption>Schematic route · distances to scale</figcaption>
+            </figure>
+        </div>
+    </section>
+
+    {# ── 4–10. Дни тура ─────────────────────────────────── #}
+    {% for c in castles %}
+    <section class="slide slide--day {% cycle 'theme-beige' 'theme-cream' %}" id="day-{{ c.day }}"
+             data-title="Day {{ c.day }} · {{ c.name }}" data-thumb="{% static c.photos.0 %}" aria-roledescription="slide">
+        <div class="day__text">
+            <p class="kicker kicker--maroon" data-reveal style="--i:0">Day {{ c.day }} · {{ c.region }}</p>
+            <h2 class="h1" data-reveal style="--i:1">{{ c.name }}</h2>
+            <p class="lead" data-reveal style="--i:2">{{ c.lead }}</p>
+            <ul class="highlights">
+                {% for h in c.highlights %}
+                <li data-reveal style="--i:{{ forloop.counter|add:2 }}">{{ h }}</li>
+                {% endfor %}
+            </ul>
+
+            <div class="day__footer" data-reveal style="--i:6">
+                <nav class="daybar" aria-label="Tour days">
+                    {% for d in castles %}
+                    <button class="daybar__dot{% if d.day == c.day %} is-current{% elif d.day < c.day %} is-done{% endif %}"
+                            type="button" data-goto="day-{{ d.day }}" title="Day {{ d.day }}: {{ d.name }}"
+                            aria-label="Day {{ d.day }}: {{ d.name }}"{% if d.day == c.day %} aria-current="step"{% endif %}>{{ d.day }}</button>
+                    {% endfor %}
+                </nav>
+                {% if c.next_name %}
+                <button class="btn btn--ghost" type="button" data-next>Next stop: {{ c.next_name }} →</button>
+                {% else %}
+                <button class="btn btn--ghost" type="button" data-next>Tour details →</button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="gallery media" data-gallery>
+            {% for ph in c.photos %}
+            <button class="gallery__item{% if forloop.first %} is-active{% endif %}" type="button"
+                    data-lightbox="{% static ph %}" aria-label="Enlarge photo {{ forloop.counter }} of {{ c.name }}">
+                <img src="{% static ph %}" alt="{{ c.name }}{% if c.photos|length > 1 %}, photo {{ forloop.counter }}{% endif %}" decoding="async">
+            </button>
+            {% endfor %}
+            {% if c.photos|length > 1 %}
+            <div class="gallery__thumbs">
+                {% for ph in c.photos %}
+                <button class="gallery__thumb{% if forloop.first %} is-active{% endif %}" type="button"
+                        data-show="{{ forloop.counter0 }}" aria-label="Show photo {{ forloop.counter }}">
+                    <img src="{% static ph %}" alt="">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <span class="gallery__hint" aria-hidden="true">⤢ Click to enlarge</span>
+        </div>
+    </section>
+    {% endfor %}
+
+    {# ── 11. Что входит в стоимость ─────────────────────── #}
+    <section class="slide slide--details theme-cream" id="details" data-title="What is included" aria-roledescription="slide">
+        <div class="wrap">
+            <p class="kicker kicker--maroon" data-reveal style="--i:0">Tour details</p>
+            <h2 class="h1" data-reveal style="--i:1">What is included</h2>
+            <div class="details">
+                <div class="details__col details__col--in" data-reveal style="--i:2">
+                    <h3>Included in the price</h3>
+                    <ul class="checklist">
+                        {% for item in tour.included %}
+                        <li><span class="mark mark--yes" aria-hidden="true">✓</span>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="details__col details__col--out" data-reveal style="--i:3">
+                    <h3>Not included</h3>
+                    <ul class="checklist">
+                        {% for item in tour.not_included %}
+                        <li><span class="mark mark--no" aria-hidden="true">✕</span>{{ item }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {# ── 12. Бронирование ───────────────────────────────── #}
+    <section class="slide slide--final theme-navy" id="book"
+             data-title="Book your tour" data-thumb="{% static tour.final_photo %}" aria-roledescription="slide">
+        <figure class="final__photo media">
+            <img src="{% static tour.final_photo %}" alt="Aerial view of Windsor Castle">
+        </figure>
+        <div class="final__text">
+            <p class="kicker" data-reveal style="--i:0">Book your tour</p>
+            <h2 class="display" data-reveal style="--i:1">Ready for your castle adventure?</h2>
+            <p class="price" data-reveal style="--i:2">Price <strong>£{{ tour.price }}</strong> per person</p>
+
+            <div class="calc" data-price="{{ tour.price }}" data-reveal style="--i:3">
+                <span class="calc__label" id="calc-label">Travellers</span>
+                <div class="stepper" role="group" aria-labelledby="calc-label">
+                    <button type="button" data-step="-1" aria-label="Fewer travellers">−</button>
+                    <output id="calc-n" aria-live="polite">1</output>
+                    <button type="button" data-step="1" aria-label="More travellers">+</button>
+                </div>
+                <span class="calc__total">Total <strong id="calc-total">£{{ tour.price }}</strong></span>
+            </div>
+
+            <p class="small" data-reveal style="--i:4">To find more information or book a tour, please call:</p>
+            <a class="phone" href="tel:{{ tour.phone_tel }}" data-reveal style="--i:5">{{ tour.phone_display }}</a>
+            <p class="signoff" data-reveal style="--i:6">Travel with “{{ tour.brand }}”<span>Thank you, and see you in England!</span></p>
+            <button class="btn btn--ghost-light" type="button" data-goto="cover" data-reveal style="--i:7">↺ Back to the start</button>
+        </div>
+    </section>
+</main>
+
+<button class="nav nav--prev" id="prev" type="button" aria-label="Previous slide">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+</button>
+<button class="nav nav--next" id="next" type="button" aria-label="Next slide">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+</button>
+<div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+<p class="keys-hint" id="keys-hint">Use ← → keys, swipe or scroll</p>
+
+<div class="overview" id="overview" hidden>
+    <div class="overview__panel" role="dialog" aria-modal="true" aria-labelledby="overview-title">
+        <div class="overview__head">
+            <h2 id="overview-title">All slides</h2>
+            <button class="icon-btn" type="button" data-close-overview aria-label="Close">✕</button>
+        </div>
+        <ol class="overview__grid" id="overview-grid"></ol>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Photo">
+    <img id="lightbox-img" src="" alt="">
+    <button class="icon-btn lightbox__close" type="button" data-close-lightbox aria-label="Close">✕</button>
+</div>
+
+<script src="{% static 'js/tour.js' %}"></script>
+</body>
+</html>
